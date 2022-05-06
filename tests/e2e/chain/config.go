@@ -22,12 +22,11 @@ import (
 )
 
 type ValidatorConfig struct {
-	NumVal             int
-	Pruning            []string
-	PruningKeepRecent  []string
-	PruningInterval    []string
-	SnapshotInterval   []uint64
-	SnapshotKeepRecent []uint32
+	Pruning            string
+	PruningKeepRecent  string
+	PruningInterval    string
+	SnapshotInterval   uint64
+	SnapshotKeepRecent uint32
 }
 
 const (
@@ -275,7 +274,7 @@ func initNodes(c *internalChain, numVal int) error {
 	return nil
 }
 
-func initValidatorConfigs(c *internalChain, pruning []string, pruningKeepRecent []string, pruningInterval []string, snapshotInterval []uint64, snapshotKeepRecent []uint32) error {
+func initValidatorConfigs(c *internalChain, validatorConfigs []*ValidatorConfig) error {
 	for i, val := range c.validators {
 		tmCfgPath := filepath.Join(val.configDir(), "config", "config.toml")
 
@@ -317,13 +316,13 @@ func initValidatorConfigs(c *internalChain, pruning []string, pruningKeepRecent 
 		appCfgPath := filepath.Join(val.configDir(), "config", "app.toml")
 
 		appConfig := srvconfig.DefaultConfig()
-		appConfig.BaseConfig.Pruning = pruning[i]
-		appConfig.BaseConfig.PruningKeepRecent = pruningKeepRecent[i]
-		appConfig.BaseConfig.PruningInterval = pruningInterval[i]
+		appConfig.BaseConfig.Pruning = validatorConfigs[i].Pruning
+		appConfig.BaseConfig.PruningKeepRecent = validatorConfigs[i].PruningKeepRecent
+		appConfig.BaseConfig.PruningInterval = validatorConfigs[i].PruningInterval
 		appConfig.API.Enable = true
 		appConfig.MinGasPrices = fmt.Sprintf("%s%s", MinGasPrice, OsmoDenom)
-		appConfig.StateSync.SnapshotInterval = snapshotInterval[i]
-		appConfig.StateSync.SnapshotKeepRecent = snapshotKeepRecent[i]
+		appConfig.StateSync.SnapshotInterval = validatorConfigs[i].SnapshotInterval
+		appConfig.StateSync.SnapshotKeepRecent = validatorConfigs[i].SnapshotKeepRecent
 
 		srvconfig.WriteConfigFile(appCfgPath, appConfig)
 	}
