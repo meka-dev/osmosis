@@ -14,48 +14,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v7/tests/e2e/util"
 )
 
-func (s *IntegrationTestSuite) TestQueryBalances() {
-	var (
-		expectedDenomsA   = []string{chain.OsmoDenom, chain.StakeDenom}
-		expectedDenomsB   = []string{chain.OsmoDenom, chain.StakeDenom, chain.IbcDenom}
-		expectedBalancesA = []uint64{chain.OsmoBalanceA - chain.IbcSendAmount, chain.StakeBalanceA - chain.StakeAmountA}
-		expectedBalancesB = []uint64{chain.OsmoBalanceB, chain.StakeBalanceB - chain.StakeAmountB, chain.IbcSendAmount}
-	)
-
-	chainAAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chains[0].ChainMeta.Id][0].GetHostPort("1317/tcp"))
-	balancesA, err := queryBalances(chainAAPIEndpoint, s.chains[0].Validators[0].PublicAddress)
-	s.Require().NoError(err)
-	s.Require().NotNil(balancesA)
-	s.Require().Equal(2, len(balancesA))
-
-	chainBAPIEndpoint := fmt.Sprintf("http://%s", s.valResources[s.chains[1].ChainMeta.Id][0].GetHostPort("1317/tcp"))
-	balancesB, err := queryBalances(chainBAPIEndpoint, s.chains[1].Validators[0].PublicAddress)
-	s.Require().NoError(err)
-	s.Require().NotNil(balancesB)
-	s.Require().Equal(3, len(balancesB))
-
-	actualDenomsA := make([]string, 0, 2)
-	actualBalancesA := make([]uint64, 0, 2)
-	actualDenomsB := make([]string, 0, 2)
-	actualBalancesB := make([]uint64, 0, 2)
-
-	for _, balanceA := range balancesA {
-		actualDenomsA = append(actualDenomsA, balanceA.GetDenom())
-		actualBalancesA = append(actualBalancesA, balanceA.Amount.Uint64())
-	}
-
-	for _, balanceB := range balancesB {
-		actualDenomsB = append(actualDenomsB, balanceB.GetDenom())
-		actualBalancesB = append(actualBalancesB, balanceB.Amount.Uint64())
-	}
-
-	s.Require().ElementsMatch(expectedDenomsA, actualDenomsA)
-	s.Require().ElementsMatch(expectedBalancesA, actualBalancesA)
-	s.Require().ElementsMatch(expectedDenomsB, actualDenomsB)
-	s.Require().ElementsMatch(expectedBalancesB, actualBalancesB)
-
-}
-
 func queryBalances(endpoint, addr string) (sdk.Coins, error) {
 	path := fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
